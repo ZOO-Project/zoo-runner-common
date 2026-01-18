@@ -1,7 +1,7 @@
-
-import os
-import attr
 import inspect
+import os
+
+import attr
 import cwl_utils
 from cwl_utils.parser import load_document_by_yaml
 
@@ -28,14 +28,19 @@ class ResourceRequirement:
 class CWLWorkflow:
     def __init__(self, cwl, workflow_id):
         self.raw_cwl = cwl
-        parsed_cwl = load_document_by_yaml(cwl, "io://")
+        self.workflow_id = workflow_id
+        
+        # Load the entire CWL document and convert to v1.2
+        # Use load_cwl_from_yaml instead of load_document_by_yaml for proper version conversion
+        from cwl_loader import load_cwl_from_yaml
+        
+        parsed_cwl = load_cwl_from_yaml(cwl, uri="io://", cwl_version='v1.2', sort=True)
 
-        # Ensure self.cwl is always a list
+        # Ensure self.cwl is always a list containing all CWL elements
         if not isinstance(parsed_cwl, list):
             parsed_cwl = [parsed_cwl]
 
         self.cwl = parsed_cwl
-        self.workflow_id = workflow_id
 
     def get_version(self):
 
@@ -57,13 +62,17 @@ class CWLWorkflow:
 
     def get_object_by_id(self, id):
         ids = [elem.id.split("#")[-1] for elem in self.cwl]
-        return self.cwl[ids.index(id)]
+        # Remove leading '#' if present, and also remove 'io://' prefix if present
+        search_id = id.lstrip("#").replace("io://", "")
+        return self.cwl[ids.index(search_id)]
 
     def get_workflow_inputs(self, mandatory=False):
         inputs = []
         for inp in self.get_workflow().inputs:
             if mandatory:
-                if inp.default is not None or inp.type == ["null", "string"]:
+                # Use type_ instead of type (cwl-utils API change)
+                inp_type = getattr(inp, 'type_', getattr(inp, 'type', None))
+                if inp.default is not None or inp_type == ["null", "string"]:
                     continue
                 else:
                     inputs.append(inp.id.split("/")[-1])
@@ -117,11 +126,15 @@ class CWLWorkflow:
 
         # look for hints
         if elem.hints is not None:
-            resource_requirement = [
-                ResourceRequirement.from_dict(hint)
-                for hint in elem.hints
-                if hint["class"] == "ResourceRequirement"
-            ]
+            resource_requirement = []
+            for hint in elem.hints:
+                # Handle both dict and object types
+                if isinstance(hint, dict):
+                    if hint.get("class") == "ResourceRequirement":
+                        resource_requirement.append(ResourceRequirement.from_dict(hint))
+                elif hasattr(hint, 'class_'):
+                    if hint.class_ == "ResourceRequirement":
+                        resource_requirement.append(hint)
 
             if len(resource_requirement) == 1:
                 return resource_requirement[0]
@@ -189,8 +202,6 @@ class CWLWorkflow:
         return resources
 
 
-
-
 class ZooConf:
     def __init__(self, conf):
         self.conf = conf
@@ -219,42 +230,69 @@ class ZooInputs:
         except TypeError:
             pass
 
-    def get_processing_parameters(self):
-        """Returns a list with the input parameters keys"""
+    def get_processing_parameters(self, workflow=None):
+        """Returns a list with the input parameters keys
+        
+        Args:
+            workflow: Optional CWL workflow object (currently unused, for future compatibility)
+        """
+        import json
+        
         res = {}
-        hasVal = False
+        allowed_types = ["integer", "float", "boolean", "double"]
+        
         for key, value in self.inputs.items():
-            if "dataType" in value:
+            if "format" in value and not("dataType" in value and value["dataType"] in allowed_types):
+                res[key] = {
+                    "format": value["format"],
+                    "value": value["value"],
+                }
+            elif "dataType" in value:
                 if isinstance(value["dataType"], list):
-                    # How should we pass array for an input?
-                    import json
-
-                    res[key] = value["value"]
-                else:
-                    if value["dataType"] in ["double", "float"]:
-                        res[key] = float(value["value"])
-                    elif value["dataType"] == "integer":
-                        res[key] = int(value["value"])
-                    elif value["dataType"] == "boolean":
-                        res[key] = int(value["value"])
+                    if value["dataType"][0] in allowed_types:
+                        if value["dataType"][0] in ["double", "float"]:
+                            res[key] = [float(item) for item in value["value"]]
+                        elif value["dataType"][0] == "integer":
+                            res[key] = [int(item) for item in value["value"]]
+                        elif value["dataType"][0] == "boolean":
+                            res[key] = [bool(item) for item in value["value"]]
                     else:
                         res[key] = value["value"]
+                else:
+                    if value["value"] == "NULL":
+                        res[key] = None
+                    else:
+                        if value["dataType"] in ["double", "float"]:
+                            res[key] = float(value["value"])
+                        elif value["dataType"] == "integer":
+                            res[key] = int(value["value"])
+                        elif value["dataType"] == "boolean":
+                            res[key] = bool(value["value"])
+                        else:
+                            res[key] = value["value"]
             else:
                 if "cache_file" in value:
-                    if "mimeType" in value:
-                        res[key] = {
-                            "class": "File",
-                            "path": value["cache_file"],
-                            "format": value["mimeType"],
-                        }
+                    if "isArray" in value and value["isArray"] == "true":
+                        res[key] = []
+                        for i in range(len(value["value"])):
+                            res[key].append({
+                                "format": value["mimeType"][i] if "mimeType" in value else "text/plain",
+                                "value": value["value"][i],
+                            })
                     else:
                         res[key] = {
-                            "class": "File",
-                            "path": value["cache_file"],
-                            "format": "text/plain",
+                            "format": value.get("mimeType", "text/plain"),
+                            "value": value["value"]
                         }
                 else:
-                    res[key] = value["value"]
+                    if "lowerCorner" in value and "upperCorner" in value:
+                        res[key] = {
+                            "format": "ogc-bbox",
+                            "bbox": json.loads(value["value"]),
+                            "crs": value["crs"].replace("http://www.opengis.net/def/crs/OGC/1.3/", "")
+                        }
+                    else:
+                        res[key] = value["value"]
         return res
 
 

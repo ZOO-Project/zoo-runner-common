@@ -10,7 +10,9 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Aryan Khare", email = "kharearyan78@gmail.com" }]
-dependencies = []
+dependencies = [
+    "loguru>=0.7.0",
+]
 
 [tool.setuptools]
 py-modules = ["base_runner", "zoo_conf", "zoostub"]

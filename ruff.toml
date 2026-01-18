@@ -1,0 +1,13 @@
+# Ruff configuration for zoo-runner-common
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+
+[lint.per-file-ignores]
+"tests/**/*.py" = ["E402", "E501"]  # Allow imports not at top and long lines in test files
