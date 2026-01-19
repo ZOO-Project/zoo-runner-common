@@ -1,6 +1,6 @@
 # BaseRunner API Reference
 
-::: base_runner.BaseRunner
+::: zoo_runner_common.base_runner.BaseRunner
     options:
       show_source: true
       show_root_heading: true

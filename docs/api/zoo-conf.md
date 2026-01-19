@@ -8,7 +8,7 @@ The `zoo_conf` module provides utilities for working with CWL workflows and ZOO-
 
 Main configuration handler for ZOO-Project services.
 
-::: zoo_conf.ZooConf
+::: zoo_runner_common.zoo_conf.ZooConf
     options:
       show_source: true
       heading_level: 4
@@ -17,7 +17,7 @@ Main configuration handler for ZOO-Project services.
 
 Handler for ZOO-Project service inputs with type conversion and validation.
 
-::: zoo_conf.ZooInputs
+::: zoo_runner_common.zoo_conf.ZooInputs
     options:
       show_source: true
       heading_level: 4
@@ -74,7 +74,7 @@ params = zoo_inputs.get_processing_parameters()
 
 Handler for ZOO-Project service outputs.
 
-::: zoo_conf.ZooOutputs
+::: zoo_runner_common.zoo_conf.ZooOutputs
     options:
       show_source: true
       heading_level: 4
@@ -117,7 +117,7 @@ zoo_outputs.set_output("/tmp/results/catalog.json")
 
 Parser and utility class for CWL workflows.
 
-::: zoo_conf.CWLWorkflow
+::: zoo_runner_common.zoo_conf.CWLWorkflow
     options:
       show_source: true
       heading_level: 4
@@ -225,7 +225,7 @@ Static method to extract ResourceRequirement from a CWL element.
 
 Data class for CWL resource requirements (used for hints).
 
-::: zoo_conf.ResourceRequirement
+::: zoo_runner_common.zoo_conf.ResourceRequirement
     options:
       show_source: true
       heading_level: 4
