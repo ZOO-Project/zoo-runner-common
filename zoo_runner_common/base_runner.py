@@ -15,7 +15,7 @@ except ImportError:
 
     zoo = ZooStub()
 
-from zoo_conf import CWLWorkflow, ZooConf, ZooInputs, ZooOutputs
+from zoo_runner_common.zoo_conf import CWLWorkflow, ZooConf, ZooInputs, ZooOutputs
 
 logger = logging.getLogger()
 

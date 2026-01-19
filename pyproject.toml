@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zoo-runner-common"
-version = "0.1.1"
+version = "0.1.2"
 description = "Shared utilities for ZOO-Project CWL runners"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,5 +35,6 @@ Repository = "https://github.com/ZOO-Project/zoo-runner-common"
 Issues = "https://github.com/ZOO-Project/zoo-runner-common/issues"
 Changelog = "https://github.com/ZOO-Project/zoo-runner-common/blob/main/CHANGELOG.md"
 
-[tool.setuptools]
-py-modules = ["base_runner", "zoo_conf", "zoostub"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["zoo_runner_common*"]
