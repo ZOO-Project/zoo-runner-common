@@ -18,6 +18,16 @@ class ExecutionHandler(ABC):
     methods to provide concrete execution logic.
     """
 
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        self.job_id = getattr(self, 'job_id', None)
+        self.outputs = getattr(self, 'outputs', {})
+        self.results = getattr(self, 'results', None)
+
+    def set_job_id(self, job_id):
+        """Set the job ID for the execution."""
+        self.job_id = job_id
+
     @abstractmethod
     def pre_execution_hook(self):
         """
