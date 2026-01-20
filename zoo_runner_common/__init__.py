@@ -15,4 +15,8 @@ __all__ = [
     "ZooStub",
 ]
 
-__version__ = "0.1.1"
+try:
+    from importlib.metadata import version
+    __version__ = version("zoo-runner-common")
+except Exception:
+    __version__ = "unknown"
