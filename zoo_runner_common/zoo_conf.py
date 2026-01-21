@@ -4,7 +4,7 @@ import os
 import attr
 import cwl_utils
 from cwl_utils.parser import load_document_by_yaml
-
+import re
 
 # useful class for hints in CWL
 @attr.s
@@ -209,6 +209,7 @@ class ZooConf:
 
 
 class ZooInputs:
+
     def __init__(self, inputs):
         # this conversion is necessary
         # because zoo converts array of length 1 to a string
@@ -232,15 +233,15 @@ class ZooInputs:
 
     def get_processing_parameters(self, workflow=None):
         """Returns a list with the input parameters keys
-        
+
         Args:
             workflow: Optional CWL workflow object (currently unused, for future compatibility)
         """
         import json
-        
+
         res = {}
         allowed_types = ["integer", "float", "boolean", "double"]
-        
+
         for key, value in self.inputs.items():
             if "format" in value and not("dataType" in value and value["dataType"] in allowed_types):
                 res[key] = {
@@ -286,10 +287,15 @@ class ZooInputs:
                         }
                 else:
                     if "lowerCorner" in value and "upperCorner" in value:
+                        prefix_list = [
+                            "http://www.opengis.net/def/crs/OGC/0/",
+                            "http://www.opengis.net/def/crs/OGC/1.3/"
+                        ]
+                        pattern = re.compile("|".join(map(re.escape, prefix_list)))
                         res[key] = {
                             "format": "ogc-bbox",
                             "bbox": json.loads(value["value"]),
-                            "crs": value["crs"].replace("http://www.opengis.net/def/crs/OGC/1.3/", "")
+                            "crs": pattern.sub("", value["crs"])
                         }
                     else:
                         res[key] = value["value"]
