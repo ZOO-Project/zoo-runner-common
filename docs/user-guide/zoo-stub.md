@@ -16,7 +16,7 @@ When developing ZOO services locally, you don't have access to the actual ZOO-Pr
 ## Status Constants
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 zoo = ZooStub()
 
@@ -35,7 +35,7 @@ zoo.SERVICE_UNDEPLOYED   # 7 - Service undeployed
 ### Local Testing Setup
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 # Create stub instance
 zoo = ZooStub()
@@ -60,7 +60,7 @@ def my_service(conf, inputs, outputs):
 ### Status Updates
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 zoo = ZooStub()
 
@@ -84,7 +84,7 @@ In production, this calls the actual ZOO-Project C function to update the execut
 ### Available Log Levels
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 zoo = ZooStub()
 
@@ -113,54 +113,40 @@ zoo.critical("Critical system error")
 ### Example with Real Service
 
 ```python
-from zoostub import ZooStub
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner, ZooStub
 
 zoo = ZooStub()
 
+
+class LoggingRunner(BaseRunner):
+    def wrap(self):
+        return self.cwl
+
+    def execute(self):
+        prepared = self.prepare()
+        zoo.info(f"Running workflow with params: {prepared.params}")
+        self.finalize("execution finished", {"result": "ok"}, None, [])
+        return zoo.SERVICE_SUCCEEDED
+
+
 def process_data(conf, inputs, outputs):
     """Process data with comprehensive logging"""
-    
+
     zoo.info("Service started")
     zoo.update_status(conf, 10)
-    
+
     try:
-        # Validate inputs
-        zoo.debug(f"Inputs: {inputs}")
-        
         if "data_url" not in inputs:
             zoo.error("Missing required input: data_url")
             return zoo.SERVICE_FAILED
-        
-        zoo.info("Creating runner")
-        zoo.update_status(conf, 20)
-        
-        runner = BaseRunner(
-            cwl_path="/path/to/workflow.cwl",
-            input_params=inputs,
-            conf=conf
+
+        runner = LoggingRunner(
+            cwl={"cwlVersion": "v1.2", "$graph": []},
+            inputs=inputs,
+            conf=conf,
+            outputs=outputs,
         )
-        
-        zoo.info("Executing workflow")
-        zoo.update_status(conf, 50)
-        
-        result = runner.execute()
-        
-        zoo.success("Workflow completed successfully")
-        zoo.update_status(conf, 90)
-        
-        # Set outputs
-        outputs["result"]["value"] = result["stac_catalog"]
-        
-        zoo.info("Service completed")
-        zoo.update_status(conf, 100)
-        
-        return zoo.SERVICE_SUCCEEDED
-        
-    except FileNotFoundError as e:
-        zoo.error(f"File not found: {e}")
-        return zoo.SERVICE_FAILED
-        
+        return runner.execute()
     except Exception as e:
         zoo.critical(f"Unexpected error: {e}")
         return zoo.SERVICE_FAILED
@@ -171,7 +157,7 @@ def process_data(conf, inputs, outputs):
 The `_()` function provides a mock for internationalization:
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 zoo = ZooStub()
 
@@ -187,7 +173,7 @@ message = zoo._("Processing started")
 ### Development (with ZooStub)
 
 ```python
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 zoo = ZooStub()
 
@@ -213,7 +199,7 @@ if __name__ == "__main__":
 try:
     import zoo
 except ImportError:
-    from zoostub import ZooStub
+    from zoo_runner_common import ZooStub
     zoo = ZooStub()
 
 def my_service(conf, inputs, outputs):
@@ -229,51 +215,56 @@ def my_service(conf, inputs, outputs):
 `ZooStub` works seamlessly with `BaseRunner`:
 
 ```python
-from zoostub import ZooStub
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner, ZooStub
 
 zoo = ZooStub()
 
+
+class TestRunner(BaseRunner):
+    def wrap(self):
+        return self.cwl
+
+    def execute(self):
+        prepared = self.prepare()
+        zoo.info(f"Prepared params: {prepared.params}")
+        self.finalize("ok", {"stac": "memory://catalog.json"}, None, [])
+        return zoo.SERVICE_SUCCEEDED
+
+
 def test_runner_locally():
     """Test a CWL workflow locally"""
-    
+
     conf = {
         "lenv": {
             "Identifier": "test-workflow",
-            "message": ""
+            "message": "",
         },
         "main": {
-            "tmpPath": "/tmp/zoo-test"
-        }
+            "tmpPath": "/tmp/zoo-test",
+        },
     }
-    
+
     inputs = {
         "input_file": {
             "cache_file": "/path/to/test.tif",
-            "mimeType": "image/tiff"
+            "mimeType": "image/tiff",
         },
         "threshold": {
             "dataType": "float",
-            "value": "0.5"
-        }
+            "value": "0.5",
+        },
     }
-    
+
     outputs = {"stac": {}}
-    
-    zoo.info("Starting local test")
-    
-    runner = BaseRunner(
-        cwl_path="/path/to/app-package.cwl",
-        input_params=inputs,
-        conf=conf
+
+    runner = TestRunner(
+        cwl={"cwlVersion": "v1.2", "$graph": []},
+        inputs=inputs,
+        conf=conf,
+        outputs=outputs,
     )
-    
-    zoo.info("Executing workflow")
-    result = runner.execute()
-    
-    zoo.success(f"Result: {result}")
-    
-    return zoo.SERVICE_SUCCEEDED
+    return runner.execute()
+
 
 if __name__ == "__main__":
     status = test_runner_locally()
@@ -286,7 +277,7 @@ Customize `loguru` logging when using `ZooStub`:
 
 ```python
 from loguru import logger
-from zoostub import ZooStub
+from zoo_runner_common import ZooStub
 
 # Configure loguru
 logger.remove()  # Remove default handler
@@ -313,7 +304,7 @@ zoo.debug("Debug message")
 try:
     import zoo
 except ImportError:
-    from zoostub import ZooStub
+    from zoo_runner_common import ZooStub
     zoo = ZooStub()
 ```
 
@@ -360,8 +351,7 @@ except Exception as e:
 Create a complete test with `ZooStub`:
 
 ```python
-from zoostub import ZooStub
-from zoo_conf import ZooInputs, ZooOutputs
+from zoo_runner_common import ZooInputs, ZooOutputs, ZooStub
 
 zoo = ZooStub()
 

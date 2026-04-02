@@ -5,6 +5,13 @@ import attr
 import cwl_utils
 from cwl_utils.parser import load_document_by_yaml
 
+try:
+    import zoo
+except ImportError:
+    from zoo_runner_common.zoostub import ZooStub
+
+    zoo = ZooStub()
+
 
 # useful class for hints in CWL
 @attr.s
@@ -179,11 +186,18 @@ class CWLWorkflow:
                     if resource_requirement := self.get_resource_requirement(
                         self.get_object_by_id(step.run[1:])
                     ):
-                        multiplier = (
-                            int(os.getenv("SCATTER_MULTIPLIER", 2))
-                            if step.scatter
-                            else 1
-                        )
+                        if step.scatter:
+                            try:
+                                multiplier = int(os.getenv("SCATTER_MULTIPLIER", 2))
+                            except (ValueError, TypeError):
+                                val = os.getenv("SCATTER_MULTIPLIER")
+                                zoo.warning(
+                                    f"Invalid SCATTER_MULTIPLIER value"
+                                    f" '{val}', defaulting to 2"
+                                )
+                                multiplier = 2
+                        else:
+                            multiplier = 1
                         for resource_type in [
                             "coresMin",
                             "coresMax",

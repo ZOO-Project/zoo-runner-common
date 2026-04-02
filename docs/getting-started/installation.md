@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - pip package manager
 
 ## From PyPI
@@ -19,24 +19,29 @@ cd zoo-runner-common
 pip install .
 ```
 
-## Development Installation
+## Development Workflow with Hatch
 
-For contributing or development:
+For development and test execution:
 
 ```bash
 git clone https://github.com/ZOO-Project/zoo-runner-common.git
 cd zoo-runner-common
-pip install -e .
+pip install hatch
+hatch run test
 ```
 
-This installs the package in editable mode with development dependencies.
+To build the package locally:
+
+```bash
+hatch build
+```
 
 ## Verification
 
 Verify the installation:
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 print("zoo-runner-common installed successfully!")
 ```
 

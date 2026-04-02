@@ -246,7 +246,7 @@ Data class for CWL resource requirements (used for hints).
 ### Basic Configuration Handling
 
 ```python
-from zoo_conf import ZooConf, ZooInputs, ZooOutputs
+from zoo_runner_common import ZooConf, ZooInputs, ZooOutputs
 
 def my_service(conf, inputs, outputs):
     """ZOO Service function"""
@@ -268,7 +268,7 @@ def my_service(conf, inputs, outputs):
 ### CWL Workflow Analysis
 
 ```python
-from zoo_conf import CWLWorkflow
+from zoo_runner_common import CWLWorkflow
 
 # Load CWL workflow
 cwl_dict = {

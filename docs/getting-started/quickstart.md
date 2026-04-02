@@ -5,94 +5,83 @@ This guide will help you get started with zoo-runner-common by implementing a si
 ## Basic Runner Implementation
 
 ```python
-from base_runner import BaseRunner
+try:
+    import zoo
+except ImportError:
+    from zoo_runner_common.zoostub import ZooStub
+
+    zoo = ZooStub()
+
+from zoo_runner_common import BaseRunner
 
 class MyRunner(BaseRunner):
     """Simple CWL runner implementation"""
-    
-    def __init__(self, conf, inputs, outputs):
-        super().__init__(conf, inputs, outputs)
-        
+
+    def wrap(self):
+        return self.cwl
+
     def execute(self):
         """Execute the CWL workflow"""
-        # 1. Prepare the workflow
-        cwl_document = self.get_cwl_document()
-        
-        # 2. Execute
-        result = self.run_workflow(cwl_document)
-        
-        # 3. Return status
+        prepared = self.prepare()
+        result = self.run_workflow(prepared.cwl, prepared.params)
+
         if result.success:
+            self.finalize(None, {"result": result.value}, None, [])
             return self.SERVICE_SUCCEEDED
-        else:
-            return self.SERVICE_FAILED
-            
-    def run_workflow(self, cwl_doc):
+        return self.SERVICE_FAILED
+
+    def run_workflow(self, cwl_doc, params):
         """Implement your workflow execution logic"""
-        # Your implementation here
         pass
 ```
 
 ## Using ZooConf
 
 ```python
-from zoo_conf import ZooConf
+from zoo_runner_common import ZooConf
 
 # Parse ZOO configuration
 zoo_conf = ZooConf(conf)
-
-# Access inputs
-input_data = zoo_conf.get_input("input_name")
-
-# Access outputs
-output_spec = zoo_conf.get_output("output_name")
+workflow_id = zoo_conf.workflow_id
 ```
 
 ## Using ZooStub for Testing
 
 ```python
-from zoostub import ZOO
+from zoo_runner_common import ZooStub
 
-# Create mock configuration
-conf = {
-    "lenv": {"message": ""},
-    "main": {"tmpPath": "/tmp"}
-}
+zoo = ZooStub()
 
 # Use ZOO status codes
-ZOO.SERVICE_SUCCEEDED  # 3
-ZOO.SERVICE_FAILED     # 4
+zoo.SERVICE_SUCCEEDED  # 3
+zoo.SERVICE_FAILED     # 4
 ```
 
 ## Complete Example
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 import subprocess
 
 class SimpleRunner(BaseRunner):
+    def wrap(self):
+        return self.cwl
+
     def execute(self):
         try:
-            # Get CWL document
-            cwl_path = self.get_cwl_document()
-            
-            # Prepare inputs
-            inputs_file = self.prepare_inputs()
+            prepared = self.prepare()
             
             # Run using cwltool
-            cmd = ["cwltool", "--outdir", self.output_dir, cwl_path, inputs_file]
+            cmd = ["cwltool", prepared.cwl]
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
-                # Process outputs
-                self.process_outputs()
+                self.finalize(result.stdout, {"stdout": result.stdout}, None, [])
                 return self.SERVICE_SUCCEEDED
-            else:
-                self.set_error(f"Execution failed: {result.stderr}")
-                return self.SERVICE_FAILED
+            return self.SERVICE_FAILED
                 
         except Exception as e:
-            self.set_error(str(e))
+            self.conf.conf["lenv"]["message"] = str(e)
             return self.SERVICE_FAILED
 ```
 

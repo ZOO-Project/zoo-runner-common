@@ -7,7 +7,7 @@
 ## Class Structure
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 
 class MyRunner(BaseRunner):
     """Custom CWL runner implementation"""
@@ -169,7 +169,7 @@ namespace = runner.get_namespace_name()
 BaseRunner integrates with execution handlers for lifecycle hooks:
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 from zoo_template_common import CommonExecutionHandler
 
 class MyHandler(CommonExecutionHandler):
@@ -274,7 +274,7 @@ runner.namespace_name  # "process-12345"
 ## Complete Example
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 from zoo_template_common import CommonExecutionHandler
 import subprocess
 import logging

@@ -14,7 +14,7 @@ To create a new runner, you need to:
 ## Basic Structure
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class MyRunner(BaseRunner):
         """Execute the workflow"""
         try:
             # 1. Prepare
-            self.prepare()
+            prepared = self.prepare()
             self.update_status(10, "Initializing")
             
             # 2. Validate
@@ -45,22 +45,23 @@ class MyRunner(BaseRunner):
             
             # 3. Execute workflow
             self.update_status(30, "Executing workflow")
-            result = self._run_workflow()
+            result = self._run_workflow(prepared.cwl, prepared.params)
             
             # 4. Process outputs
             self.update_status(80, "Processing outputs")
             self._process_outputs(result)
             
             # 5. Finish
+            self.finalize(None, result, None, [])
             self.update_status(100, "Complete")
             return self.SERVICE_SUCCEEDED
             
         except Exception as e:
             logger.error(f"Execution failed: {e}", exc_info=True)
-            self.conf["lenv"]["message"] = str(e)
+            self.conf.conf["lenv"]["message"] = str(e)
             return self.SERVICE_FAILED
     
-    def _run_workflow(self):
+    def _run_workflow(self, cwl, params):
         """Execute workflow on backend"""
         # Implement your workflow execution logic
         pass
@@ -82,22 +83,26 @@ mkdir zoo-myrunner
 cd zoo-myrunner
 ```
 
-Create `setup.py`:
+Create `pyproject.toml`:
 
-```python
-from setuptools import setup, find_packages
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-setup(
-    name="zoo-myrunner",
-    version="0.1.0",
-    packages=find_packages(),
-    install_requires=[
-        "zoo-runner-common>=0.1.0",
-        # Add your specific dependencies
-    ],
-    author="Your Name",
-    description="My CWL runner for ZOO-Project",
-)
+[project]
+name = "zoo-myrunner"
+version = "0.1.0"
+description = "My CWL runner for ZOO-Project"
+requires-python = ">=3.10"
+dependencies = [
+    "zoo-runner-common>=0.1.3",
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7",
+]
 ```
 
 ### Step 2: Implement Runner
@@ -105,7 +110,7 @@ setup(
 Create `zoo_myrunner/runner.py`:
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 import logging
 import subprocess
 import json
@@ -161,7 +166,7 @@ class MyRunner(BaseRunner):
             
         except Exception as e:
             logger.error(f"Execution failed: {e}", exc_info=True)
-            self.conf["lenv"]["message"] = str(e)
+            self.conf.conf["lenv"]["message"] = str(e)
             return self.SERVICE_FAILED
     
     def _setup_environment(self):
@@ -423,7 +428,7 @@ Set environment variables:
 Build the package:
 
 ```bash
-python setup.py sdist bdist_wheel
+hatch build
 ```
 
 Publish to PyPI:
@@ -452,8 +457,9 @@ def select_runner():
 
 2. Add to dependencies:
 
-```python
-install_requires=[
+```toml
+[project]
+dependencies = [
     "zoo-myrunner>=0.1.0",
 ]
 ```

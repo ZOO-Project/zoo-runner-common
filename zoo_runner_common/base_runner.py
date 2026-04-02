@@ -1,23 +1,16 @@
-import logging
 import os
-import sys
 import traceback
 import types
 from abc import ABC, abstractmethod
 
-# Shared ZooStub import
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-
 try:
     import zoo
 except ImportError:
-    from zoostub import ZooStub
+    from zoo_runner_common.zoostub import ZooStub
 
     zoo = ZooStub()
 
 from zoo_runner_common.zoo_conf import CWLWorkflow, ZooConf, ZooInputs, ZooOutputs
-
-logger = logging.getLogger()
 
 
 class BaseRunner(ABC):
@@ -104,7 +97,7 @@ class BaseRunner(ABC):
             self.conf.conf["lenv"]["message"] = message
             zoo.update_status(self.conf.conf, progress)
         else:
-            logger.warning("Cannot update status: conf structure not available")
+            zoo.warning("Cannot update status: conf structure not available")
 
     def get_namespace_name(self):
         """
@@ -122,11 +115,11 @@ class BaseRunner(ABC):
 
     def log_output(self, output):
         """Log output information."""
-        logger.info("[BaseRunner] Output: %s", output)
+        zoo.info(f"[BaseRunner] Output: {output}")
 
     def validate_inputs(self):
         """Validate input parameters."""
-        logger.info("[BaseRunner] Validating inputs...")
+        zoo.info("[BaseRunner] Validating inputs...")
         return True
 
     def prepare(self):
@@ -134,7 +127,7 @@ class BaseRunner(ABC):
         Shared pre-execution logic.
         Calls execution handler hooks and prepares processing parameters.
         """
-        logger.info("execution started")
+        zoo.info("execution started")
         self.update_status(progress=2, message="starting execution")
 
         # Call pre-execution hook
@@ -144,11 +137,11 @@ class BaseRunner(ABC):
             try:
                 self.execution_handler.pre_execution_hook()
             except Exception as e:
-                logger.error(f"Error in pre_execution_hook: {e}")
-                logger.error(traceback.format_exc())
+                zoo.error(f"Error in pre_execution_hook: {e}")
+                zoo.error(traceback.format_exc())
                 raise
 
-        logger.info("wrap CWL workflow with stage-in/out steps")
+        zoo.info("wrap CWL workflow with stage-in/out steps")
 
         processing_parameters = {
             **self.get_processing_parameters(),
@@ -166,7 +159,7 @@ class BaseRunner(ABC):
         Finalization logic after execution.
         Calls execution handler post-execution and output handling hooks.
         """
-        logger.info("Finalization started")
+        zoo.info("Finalization started")
 
         # Call post-execution hook
         if self.execution_handler and hasattr(
@@ -177,8 +170,8 @@ class BaseRunner(ABC):
                     log, output, usage_report, tool_logs
                 )
             except Exception as e:
-                logger.error(f"Error in post_execution_hook: {e}")
-                logger.error(traceback.format_exc())
+                zoo.error(f"Error in post_execution_hook: {e}")
+                zoo.error(traceback.format_exc())
                 raise
 
         # Call handle_outputs hook
@@ -188,8 +181,8 @@ class BaseRunner(ABC):
                     log, output, usage_report, tool_logs
                 )
             except Exception as e:
-                logger.error(f"Error in handle_outputs: {e}")
-                logger.error(traceback.format_exc())
+                zoo.error(f"Error in handle_outputs: {e}")
+                zoo.error(traceback.format_exc())
                 raise
 
     def get_workflow_id(self):
@@ -298,14 +291,13 @@ class BaseRunner(ABC):
 
             for required_input in required_inputs:
                 if required_input not in self.inputs.inputs:
-                    error_msg = f"Missing required input: {required_input}"
-                    logger.error(error_msg)
+                    zoo.error(f"Missing required input: {required_input}")
                     return False
 
-            logger.info("All required parameters are present")
+            zoo.info("All required parameters are present")
             return True
         except Exception as e:
-            logger.error(f"Error checking parameters: {e}")
+            zoo.error(f"Error checking parameters: {e}")
             return False
 
     def get_processing_parameters(self):

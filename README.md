@@ -16,31 +16,31 @@ The `zoo-runner-common` repository provides core shared components used across m
 
 ### Key Benefits
 
-- ✅ **~437 lines of code duplication eliminated** across 3 runners
+- ✅ **Avoid code duplication** across runners
 - ✅ **Single source of truth** for common functionality
 - ✅ **Easier maintenance** - fix once, benefit everywhere
 - ✅ **Consistent behavior** across all runners
 
----
-
-## Directory Structure
-
-```
-zoo-runner-common/
-├── base_runner.py      # Abstract BaseRunner with common methods
-├── zoo_conf.py         # ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
-├── handlers.py         # ExecutionHandler abstract base class
-├── zoostub.py          # ZooStub for ZOO kernel communication
-└── __init__.py         # Package initialization
-```
-
----
-
 ## Installation
 
-### As a dependency (recommended)
+### From PyPI
+
+```bash
+pip install zoo-runner-common
+```
+
+### As a dependency in another runner
 
 Add to your runner's `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    "zoo-runner-common>=0.1.3",
+]
+```
+
+For testing against a Git revision instead of a published release:
 
 ```toml
 [project]
@@ -49,20 +49,26 @@ dependencies = [
 ]
 ```
 
-### Local development
+### Local development with Hatch
 
 ```bash
-export PYTHONPATH="$PYTHONPATH:/path/to/zoo-runner-common"
+git clone https://github.com/ZOO-Project/zoo-runner-common.git
+cd zoo-runner-common
+pip install hatch
+hatch run test
 ```
 
-Or use relative imports:
+Build distributions with:
+
+```bash
+hatch build
+```
+
+Import the package using its Python package name:
 
 ```python
-import sys
-sys.path.insert(0, os.path.abspath('../zoo-runner-common'))
-from base_runner import BaseRunner
-from zoo_conf import ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
-from handlers import ExecutionHandler
+from zoo_runner_common import BaseRunner, ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
+from zoo_runner_common.handlers import ExecutionHandler
 ```
 
 ---

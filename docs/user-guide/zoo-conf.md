@@ -18,7 +18,7 @@ The module contains four main classes:
 ### Basic Usage
 
 ```python
-from zoo_conf import ZooConf
+from zoo_runner_common import ZooConf
 
 def my_service(conf, inputs, outputs):
     zoo_conf = ZooConf(conf)
@@ -41,7 +41,7 @@ def my_service(conf, inputs, outputs):
 ZOO-Project passes all values as strings. `ZooInputs` automatically converts them to appropriate Python types:
 
 ```python
-from zoo_conf import ZooInputs
+from zoo_runner_common import ZooInputs
 
 inputs = {
     "threshold": {
@@ -140,7 +140,7 @@ except KeyError:
 ### Basic Output
 
 ```python
-from zoo_conf import ZooOutputs
+from zoo_runner_common import ZooOutputs
 
 def my_service(conf, inputs, outputs):
     # ... processing ...
@@ -185,7 +185,7 @@ output_params = zoo_outputs.get_output_parameters()
 ### Loading a Workflow
 
 ```python
-from zoo_conf import CWLWorkflow
+from zoo_runner_common import CWLWorkflow
 
 # Load from dict
 cwl_dict = {
@@ -291,8 +291,19 @@ resources = workflow.eval_resource()
 Here's a complete ZOO service using all the utilities:
 
 ```python
-from zoo_conf import ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner, CWLWorkflow, ZooConf, ZooInputs, ZooOutputs
+
+
+class WorkflowRunner(BaseRunner):
+    def wrap(self):
+        return self.cwl
+
+    def execute(self):
+        prepared = self.prepare()
+        # Replace this with your backend execution logic.
+        result = {"stac_catalog": f"memory://{self.get_workflow_id()}.json"}
+        self.finalize(None, result, None, [])
+        return self.SERVICE_SUCCEEDED
 
 def process_imagery(conf, inputs, outputs):
     """
@@ -331,10 +342,11 @@ def process_imagery(conf, inputs, outputs):
         conf["lenv"]["message"] = f"Workflow requires {total_ram} MB RAM"
         
         # Create runner
-        runner = BaseRunner(
-            cwl_path=cwl_path,
-            input_params=params,
-            conf=conf
+        runner = WorkflowRunner(
+            cwl=cwl_dict,
+            inputs=inputs,
+            conf=conf,
+            outputs=outputs,
         )
         
         # Execute

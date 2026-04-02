@@ -42,9 +42,12 @@ zoo-runner-common (base package)
 ## Quick Example
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 
 class MyRunner(BaseRunner):
+    def wrap(self):
+        return self.cwl
+
     def execute(self):
         """Implement execution logic"""
         # Your runner implementation

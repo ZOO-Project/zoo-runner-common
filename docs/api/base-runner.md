@@ -242,7 +242,7 @@ class DefaultHandler:
 ## Usage Pattern
 
 ```python
-from base_runner import BaseRunner
+from zoo_runner_common import BaseRunner
 
 class MyRunner(BaseRunner):
     def execute(self):

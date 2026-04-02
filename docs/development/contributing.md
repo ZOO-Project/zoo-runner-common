@@ -6,17 +6,17 @@ Thank you for your interest in contributing to zoo-runner-common!
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Git
+- Hatch
 
 ### Setup
 
 ```bash
 git clone https://github.com/ZOO-Project/zoo-runner-common.git
 cd zoo-runner-common
-python -m venv venv
-source venv/bin/activate
-pip install -e ".[dev]"
+pip install hatch
+hatch run test
 ```
 
 ## Development Workflow
@@ -40,16 +40,19 @@ class MyRunner(BaseRunner):
     This runner executes CWL workflows using [backend].
     """
     
+    def wrap(self):
+        return self.cwl
+
     def execute(self):
         """Execute workflow with error handling"""
         try:
             prepared = self.prepare()
-            result = self.run_workflow(prepared.cwl)
+            result = self.run_workflow(prepared.cwl, prepared.params)
             self.finalize(None, result, None, None)
-            return zoo.SERVICE_SUCCEEDED
+            return self.SERVICE_SUCCEEDED
         except Exception as e:
             logger.error(f"Execution failed: {e}")
-            return zoo.SERVICE_FAILED
+            return self.SERVICE_FAILED
 ```
 
 ### 3. Write Tests
@@ -66,7 +69,13 @@ def test_runner_execution():
 Run tests:
 
 ```bash
-pytest tests/
+hatch run test
+```
+
+Build distributions:
+
+```bash
+hatch build
 ```
 
 ### 4. Update Documentation

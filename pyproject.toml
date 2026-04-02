@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "zoo-runner-common"
-version = "0.1.3"
+dynamic = ["version"]
 description = "Shared utilities for ZOO-Project CWL runners"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [
     { name = "Aryan Khare", email = "kharearyan78@gmail.com" },
-    { name = "Gérald Fenoy", email = "gerald.fenoy@geolabs.fr" }
+    { name = "Gérald Fenoy", email = "gerald.fenoy@geolabs.fr" },
 ]
 keywords = ["zoo-project", "cwl", "runner", "workflow", "ogc", "api", "processes"]
 classifiers = [
@@ -26,6 +26,8 @@ classifiers = [
 ]
 dependencies = [
     "loguru>=0.7.0",
+    "attrs>=21.3.0",
+    "cwl-utils>=0.31.0",
 ]
 
 [project.urls]
@@ -35,6 +37,36 @@ Repository = "https://github.com/ZOO-Project/zoo-runner-common"
 Issues = "https://github.com/ZOO-Project/zoo-runner-common/issues"
 Changelog = "https://github.com/ZOO-Project/zoo-runner-common/blob/main/CHANGELOG.md"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["zoo_runner_common*"]
+[tool.hatch.version]
+path = "zoo_runner_common/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=zoo_runner_common {args:tests}"
+
+[tool.coverage.run]
+source_pkgs = ["zoo_runner_common", "tests"]
+branch = true
+parallel = true
+omit = [
+    "zoo_runner_common/__about__.py",
+]
+
+[tool.coverage.paths]
+zoo_runner_common = ["zoo_runner_common"]
+tests = ["tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
