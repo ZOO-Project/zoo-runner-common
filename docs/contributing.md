@@ -172,6 +172,7 @@ Catch specific exceptions and use structured logging via `loguru`:
 ```python
 from loguru import logger
 
+
 def load_config(self, path: str) -> dict:
     """Load configuration from a YAML file."""
     try:
@@ -200,8 +201,8 @@ Place unit tests under `tests/` and name files `test_*.py`:
 import unittest
 from zoo_runner_common import BaseRunner
 
-class TestBaseRunner(unittest.TestCase):
 
+class TestBaseRunner(unittest.TestCase):
     def test_initialization(self):
         """Test that BaseRunner initializes correctly."""
         self.assertIsNotNone(BaseRunner)

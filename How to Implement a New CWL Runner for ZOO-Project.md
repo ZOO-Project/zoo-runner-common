@@ -47,6 +47,7 @@ from base_runner import BaseRunner  # optional
 from zoostub import ZooStub
 import logging
 
+
 class ZooMyRunner:
     def __init__(self, cwl, conf, inputs, outputs, execution_handler=None):
         self.zoo_conf = ZooConf(conf)
@@ -78,7 +79,7 @@ RUNNERS = {
     "calrissian": ZooCalrissianRunner,
     "wes": ZooWESRunner,
     "argowf": ZooArgoWfRunner,
-    "myrunner": ZooMyRunner   # Add your runner here
+    "myrunner": ZooMyRunner,  # Add your runner here
 }
 ```
 

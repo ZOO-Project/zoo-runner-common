@@ -248,20 +248,21 @@ Data class for CWL resource requirements (used for hints).
 ```python
 from zoo_conf import ZooConf, ZooInputs, ZooOutputs
 
+
 def my_service(conf, inputs, outputs):
     """ZOO Service function"""
     # Parse configuration
     zoo_conf = ZooConf(conf)
     workflow_id = zoo_conf.workflow_id
-    
+
     # Handle inputs
     zoo_inputs = ZooInputs(inputs)
     params = zoo_inputs.get_processing_parameters()
-    
+
     # Handle outputs
     zoo_outputs = ZooOutputs(outputs)
     zoo_outputs.set_output("/path/to/result")
-    
+
     return 3  # SERVICE_SUCCEEDED
 ```
 
@@ -271,11 +272,7 @@ def my_service(conf, inputs, outputs):
 from zoo_conf import CWLWorkflow
 
 # Load CWL workflow
-cwl_dict = {
-    "cwlVersion": "v1.0",
-    "$graph": [...],
-    "s:softwareVersion": "1.0.0"
-}
+cwl_dict = {"cwlVersion": "v1.0", "$graph": [...], "s:softwareVersion": "1.0.0"}
 
 workflow = CWLWorkflow(cwl_dict, "main-workflow")
 
@@ -289,8 +286,8 @@ print(f"Required inputs: {mandatory_inputs}")
 
 # Evaluate resources
 resources = workflow.eval_resource()
-total_cores = sum(resources['coresMin'])
-total_ram = sum(resources['ramMin'])
+total_cores = sum(resources["coresMin"])
+total_ram = sum(resources["ramMin"])
 print(f"Requires {total_cores} cores and {total_ram} MB RAM")
 ```
 
@@ -299,23 +296,10 @@ print(f"Requires {total_cores} cores and {total_ram} MB RAM")
 ```python
 # ZOO inputs with various types
 inputs = {
-    "threshold": {
-        "dataType": "float",
-        "value": "0.75"
-    },
-    "iterations": {
-        "dataType": "integer",
-        "value": "10"
-    },
-    "input_file": {
-        "cache_file": "/tmp/data.tif",
-        "mimeType": "image/tiff"
-    },
-    "bands": {
-        "dataType": "string",
-        "maxOccurs": "3",
-        "value": ["B02", "B03", "B04"]
-    }
+    "threshold": {"dataType": "float", "value": "0.75"},
+    "iterations": {"dataType": "integer", "value": "10"},
+    "input_file": {"cache_file": "/tmp/data.tif", "mimeType": "image/tiff"},
+    "bands": {"dataType": "string", "maxOccurs": "3", "value": ["B02", "B03", "B04"]},
 }
 
 zoo_inputs = ZooInputs(inputs)

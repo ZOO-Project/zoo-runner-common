@@ -20,15 +20,16 @@ The module contains four main classes:
 ```python
 from zoo_conf import ZooConf
 
+
 def my_service(conf, inputs, outputs):
     zoo_conf = ZooConf(conf)
-    
+
     # Get the workflow identifier
     workflow_id = zoo_conf.workflow_id  # From conf["lenv"]["Identifier"]
-    
+
     # Access underlying conf dict
     tmp_path = zoo_conf.conf["main"]["tmpPath"]
-    
+
     return 3
 ```
 
@@ -44,18 +45,9 @@ ZOO-Project passes all values as strings. `ZooInputs` automatically converts the
 from zoo_conf import ZooInputs
 
 inputs = {
-    "threshold": {
-        "dataType": "float",
-        "value": "0.85"
-    },
-    "max_iterations": {
-        "dataType": "integer",
-        "value": "100"
-    },
-    "enable_cache": {
-        "dataType": "boolean",
-        "value": "1"
-    }
+    "threshold": {"dataType": "float", "value": "0.85"},
+    "max_iterations": {"dataType": "integer", "value": "100"},
+    "enable_cache": {"dataType": "boolean", "value": "1"},
 }
 
 zoo_inputs = ZooInputs(inputs)
@@ -77,12 +69,12 @@ File inputs are converted to CWL File objects:
 inputs = {
     "input_raster": {
         "cache_file": "/tmp/zTMPykgmh8/data.tif",
-        "mimeType": "image/tiff"
+        "mimeType": "image/tiff",
     },
     "config_file": {
         "cache_file": "/tmp/zTMPykgmh8/config.json",
-        "mimeType": "application/json"
-    }
+        "mimeType": "application/json",
+    },
 }
 
 zoo_inputs = ZooInputs(inputs)
@@ -111,7 +103,7 @@ ZOO-Project has a quirk: arrays with one element are converted to strings. `ZooI
 inputs = {
     "bands": {
         "maxOccurs": "3",
-        "value": "B02"  # Single value, but should be array
+        "value": "B02",  # Single value, but should be array
     }
 }
 
@@ -142,24 +134,22 @@ except KeyError:
 ```python
 from zoo_conf import ZooOutputs
 
+
 def my_service(conf, inputs, outputs):
     # ... processing ...
-    
+
     zoo_outputs = ZooOutputs(outputs)
-    
+
     # Set the result
     zoo_outputs.set_output("/tmp/results/catalog.json")
-    
+
     return 3
 ```
 
 ### Multiple Outputs
 
 ```python
-outputs = {
-    "result": {},
-    "metadata": {}
-}
+outputs = {"result": {}, "metadata": {}}
 
 zoo_outputs = ZooOutputs(outputs)
 
@@ -198,10 +188,10 @@ cwl_dict = {
             "doc": "Process satellite imagery",
             "inputs": [...],
             "outputs": [...],
-            "steps": [...]
+            "steps": [...],
         }
     ],
-    "s:softwareVersion": "1.2.0"
+    "s:softwareVersion": "1.2.0",
 }
 
 workflow = CWLWorkflow(cwl_dict, "main-workflow")
@@ -260,12 +250,12 @@ resources = workflow.eval_resource()
 # }
 
 # Calculate totals
-total_cores_min = sum(resources['coresMin'])  # 7
-total_ram_min = sum(resources['ramMin'])      # 6656 MB
+total_cores_min = sum(resources["coresMin"])  # 7
+total_ram_min = sum(resources["ramMin"])  # 6656 MB
 
 # Use maximum values for resource allocation
-max_cores = max(resources['coresMax'])  # 8
-max_ram = max(resources['ramMax'])      # 8192 MB
+max_cores = max(resources["coresMax"])  # 8
+max_ram = max(resources["ramMax"])  # 8192 MB
 
 print(f"Request {max_cores} cores and {max_ram} MB RAM")
 ```
@@ -294,6 +284,7 @@ Here's a complete ZOO service using all the utilities:
 from zoo_conf import ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
 from base_runner import BaseRunner
 
+
 def process_imagery(conf, inputs, outputs):
     """
     ZOO Service for processing satellite imagery
@@ -302,50 +293,47 @@ def process_imagery(conf, inputs, outputs):
         # Parse configuration
         zoo_conf = ZooConf(conf)
         workflow_id = zoo_conf.workflow_id
-        
+
         # Load CWL workflow
         cwl_path = f"/opt/zooservices/{workflow_id}/app-package.cwl"
         with open(cwl_path) as f:
             import yaml
+
             cwl_dict = yaml.safe_load(f)
-        
+
         workflow = CWLWorkflow(cwl_dict, workflow_id)
-        
+
         # Validate inputs
         required_inputs = workflow.get_workflow_inputs(mandatory=True)
         zoo_inputs = ZooInputs(inputs)
-        
+
         for required in required_inputs:
             try:
                 zoo_inputs.get_input_value(required)
             except KeyError:
                 conf["lenv"]["message"] = f"Missing required input: {required}"
                 return 4  # SERVICE_FAILED
-        
+
         # Get processing parameters
         params = zoo_inputs.get_processing_parameters()
-        
+
         # Evaluate resources
         resources = workflow.eval_resource()
-        total_ram = sum(resources['ramMin'])
+        total_ram = sum(resources["ramMin"])
         conf["lenv"]["message"] = f"Workflow requires {total_ram} MB RAM"
-        
+
         # Create runner
-        runner = BaseRunner(
-            cwl_path=cwl_path,
-            input_params=params,
-            conf=conf
-        )
-        
+        runner = BaseRunner(cwl_path=cwl_path, input_params=params, conf=conf)
+
         # Execute
         result = runner.execute()
-        
+
         # Set outputs
         zoo_outputs = ZooOutputs(outputs)
         zoo_outputs.set_output(result["stac_catalog"])
-        
+
         return 3  # SERVICE_SUCCEEDED
-        
+
     except Exception as e:
         conf["lenv"]["message"] = str(e)
         return 4  # SERVICE_FAILED
@@ -384,7 +372,7 @@ for inp in required:
 ```python
 # ✅ DO: Evaluate and communicate resource requirements
 resources = workflow.eval_resource()
-total_ram = sum(resources['ramMin'])
+total_ram = sum(resources["ramMin"])
 conf["lenv"]["message"] = f"Requires {total_ram} MB RAM"
 ```
 
@@ -420,7 +408,7 @@ zoo_inputs = ZooInputs(inputs)
 inputs = {
     "threshold": {
         "dataType": "float",  # Required for conversion
-        "value": "0.85"
+        "value": "0.85",
     }
 }
 ```

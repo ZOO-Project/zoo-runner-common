@@ -9,12 +9,13 @@
 ```python
 from base_runner import BaseRunner
 
+
 class MyRunner(BaseRunner):
     """Custom CWL runner implementation"""
-    
+
     def __init__(self, cwl, inputs, conf, outputs, execution_handler=None):
         super().__init__(cwl, inputs, conf, outputs, execution_handler)
-    
+
     def execute(self):
         """Implement workflow execution logic"""
         # Your implementation
@@ -172,14 +173,16 @@ BaseRunner integrates with execution handlers for lifecycle hooks:
 from base_runner import BaseRunner
 from zoo_template_common import CommonExecutionHandler
 
+
 class MyHandler(CommonExecutionHandler):
     def pre_execution_hook(self):
         """Setup before execution"""
         print("Setting up...")
-    
+
     def post_execution_hook(self, log, output, usage_report, tool_logs):
         """Cleanup after execution"""
         print("Cleaning up...")
+
 
 # Use with runner
 handler = MyHandler(conf, outputs)
@@ -281,57 +284,59 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class SimpleRunner(BaseRunner):
     """Simple CWL runner using cwltool"""
-    
+
     def execute(self):
         """Execute workflow with cwltool"""
         try:
             # Prepare
             self.prepare()
             self.update_status(10, "Preparing execution")
-            
+
             # Validate
             if not self.validate_inputs():
                 return zoo.SERVICE_FAILED
-            
+
             self.update_status(30, "Executing workflow")
-            
+
             # Execute with cwltool
             cmd = ["cwltool", self.cwl, "--"]
             for key, value in self.inputs.items():
                 cmd.append(f"{key}={value['value']}")
-            
+
             result = subprocess.run(cmd, capture_output=True, text=True)
-            
+
             if result.returncode == 0:
                 self.update_status(90, "Processing outputs")
                 self.outputs["result"] = {"value": result.stdout}
                 self.log_output(self.outputs)
-                
+
                 # Call post-execution hook
                 self.execution_handler.post_execution_hook(
                     result.stdout, self.outputs, None, None
                 )
-                
+
                 self.update_status(100, "Complete")
                 return zoo.SERVICE_SUCCEEDED
             else:
                 logger.error(f"Execution failed: {result.stderr}")
                 return zoo.SERVICE_FAILED
-                
+
         except Exception as e:
             logger.error(f"Error: {e}")
             return zoo.SERVICE_FAILED
+
 
 # ZOO Service
 def my_service(conf, inputs, outputs):
     """ZOO Service using SimpleRunner"""
     cwl = conf["lenv"]["cwl_document"]
-    
+
     handler = CommonExecutionHandler(conf, outputs)
     runner = SimpleRunner(cwl, inputs, conf, outputs, handler)
-    
+
     return runner.execute()
 ```
 
