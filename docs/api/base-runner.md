@@ -244,28 +244,30 @@ class DefaultHandler:
 ```python
 from base_runner import BaseRunner
 
+
 class MyRunner(BaseRunner):
     def execute(self):
         """Execute workflow"""
         # Prepare
         prepared = self.prepare()
         self.update_status(20, "Executing")
-        
+
         # Execute
         result = self.run_workflow(prepared.cwl, prepared.params)
-        
+
         # Finalize
         self.finalize(None, result, None, None)
-        
+
         return zoo.SERVICE_SUCCEEDED
-    
+
     def wrap(self):
         """Wrap workflow"""
         return self.cwl
-    
+
     def get_processing_parameters(self):
         """Get parameters"""
         return {"max_cores": 8}
+
 
 # Use in service
 def my_service(conf, inputs, outputs):

@@ -59,7 +59,8 @@ Or use relative imports:
 
 ```python
 import sys
-sys.path.insert(0, os.path.abspath('../zoo-runner-common'))
+
+sys.path.insert(0, os.path.abspath("../zoo-runner-common"))
 from base_runner import BaseRunner
 from zoo_conf import ZooConf, ZooInputs, ZooOutputs, CWLWorkflow
 from handlers import ExecutionHandler
@@ -114,25 +115,32 @@ Abstract base class for execution customization:
 ```python
 class ExecutionHandler(ABC):
     @abstractmethod
-    def pre_execution_hook(self): pass
-    
+    def pre_execution_hook(self):
+        pass
+
     @abstractmethod
-    def post_execution_hook(self, log, output, usage_report, tool_logs): pass
-    
+    def post_execution_hook(self, log, output, usage_report, tool_logs):
+        pass
+
     @abstractmethod
-    def get_secrets(self): pass
-    
+    def get_secrets(self):
+        pass
+
     @abstractmethod
-    def get_pod_env_vars(self): pass
-    
+    def get_pod_env_vars(self):
+        pass
+
     @abstractmethod
-    def get_pod_node_selector(self): pass
-    
+    def get_pod_node_selector(self):
+        pass
+
     @abstractmethod
-    def handle_outputs(self, log, output, usage_report, tool_logs): pass
-    
+    def handle_outputs(self, log, output, usage_report, tool_logs):
+        pass
+
     @abstractmethod
-    def get_additional_parameters(self): pass
+    def get_additional_parameters(self):
+        pass
 ```
 
 ---
@@ -143,18 +151,19 @@ class ExecutionHandler(ABC):
 from zoo_runner_common.base_runner import BaseRunner
 from zoo_runner_common.handlers import ExecutionHandler
 
+
 class MyCustomRunner(BaseRunner):
     def wrap(self):
         # Implement CWL wrapping logic
         return wrapped_cwl
-    
+
     def execute(self):
         # Prepare execution
         cwljob = self.prepare()
-        
+
         # Execute workflow (custom logic)
         result = my_executor.run(cwljob.cwl, cwljob.params)
-        
+
         # Finalize
         self.finalize(log, output, usage_report, tool_logs)
         return result

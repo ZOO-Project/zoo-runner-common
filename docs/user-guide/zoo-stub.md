@@ -21,13 +21,13 @@ from zoostub import ZooStub
 zoo = ZooStub()
 
 # Available status codes
-zoo.SERVICE_ACCEPTED     # 0 - Service request accepted
-zoo.SERVICE_STARTED      # 1 - Service execution started
-zoo.SERVICE_PAUSED       # 2 - Service paused (deprecated)
-zoo.SERVICE_SUCCEEDED    # 3 - Service completed successfully
-zoo.SERVICE_FAILED       # 4 - Service failed
-zoo.SERVICE_DEPLOYED     # 6 - Service deployed
-zoo.SERVICE_UNDEPLOYED   # 7 - Service undeployed
+zoo.SERVICE_ACCEPTED  # 0 - Service request accepted
+zoo.SERVICE_STARTED  # 1 - Service execution started
+zoo.SERVICE_PAUSED  # 2 - Service paused (deprecated)
+zoo.SERVICE_SUCCEEDED  # 3 - Service completed successfully
+zoo.SERVICE_FAILED  # 4 - Service failed
+zoo.SERVICE_DEPLOYED  # 6 - Service deployed
+zoo.SERVICE_UNDEPLOYED  # 7 - Service undeployed
 ```
 
 ## Basic Usage
@@ -40,20 +40,21 @@ from zoostub import ZooStub
 # Create stub instance
 zoo = ZooStub()
 
+
 def my_service(conf, inputs, outputs):
     """ZOO Service for local testing"""
-    
+
     # Update status
     zoo.update_status(conf, 20)
-    
+
     # Log progress
     zoo.info("Processing started")
-    
+
     # ... processing ...
-    
+
     zoo.info("Processing completed")
     zoo.update_status(conf, 100)
-    
+
     return zoo.SERVICE_SUCCEEDED
 ```
 
@@ -65,8 +66,8 @@ from zoostub import ZooStub
 zoo = ZooStub()
 
 # Simulate progress updates
-zoo.update_status(conf, 10)   # 10% complete
-zoo.update_status(conf, 50)   # 50% complete
+zoo.update_status(conf, 10)  # 10% complete
+zoo.update_status(conf, 50)  # 50% complete
 zoo.update_status(conf, 100)  # 100% complete
 
 # Output:
@@ -118,49 +119,48 @@ from base_runner import BaseRunner
 
 zoo = ZooStub()
 
+
 def process_data(conf, inputs, outputs):
     """Process data with comprehensive logging"""
-    
+
     zoo.info("Service started")
     zoo.update_status(conf, 10)
-    
+
     try:
         # Validate inputs
         zoo.debug(f"Inputs: {inputs}")
-        
+
         if "data_url" not in inputs:
             zoo.error("Missing required input: data_url")
             return zoo.SERVICE_FAILED
-        
+
         zoo.info("Creating runner")
         zoo.update_status(conf, 20)
-        
+
         runner = BaseRunner(
-            cwl_path="/path/to/workflow.cwl",
-            input_params=inputs,
-            conf=conf
+            cwl_path="/path/to/workflow.cwl", input_params=inputs, conf=conf
         )
-        
+
         zoo.info("Executing workflow")
         zoo.update_status(conf, 50)
-        
+
         result = runner.execute()
-        
+
         zoo.success("Workflow completed successfully")
         zoo.update_status(conf, 90)
-        
+
         # Set outputs
         outputs["result"]["value"] = result["stac_catalog"]
-        
+
         zoo.info("Service completed")
         zoo.update_status(conf, 100)
-        
+
         return zoo.SERVICE_SUCCEEDED
-        
+
     except FileNotFoundError as e:
         zoo.error(f"File not found: {e}")
         return zoo.SERVICE_FAILED
-        
+
     except Exception as e:
         zoo.critical(f"Unexpected error: {e}")
         return zoo.SERVICE_FAILED
@@ -191,18 +191,20 @@ from zoostub import ZooStub
 
 zoo = ZooStub()
 
+
 def my_service(conf, inputs, outputs):
     zoo.info("Running locally")
     zoo.update_status(conf, 50)
     # ... processing ...
     return zoo.SERVICE_SUCCEEDED
 
+
 # Test locally
 if __name__ == "__main__":
     conf = {"lenv": {"message": ""}}
     inputs = {"data": {"value": "test.tif"}}
     outputs = {}
-    
+
     status = my_service(conf, inputs, outputs)
     print(f"Service returned: {status}")
 ```
@@ -214,7 +216,9 @@ try:
     import zoo
 except ImportError:
     from zoostub import ZooStub
+
     zoo = ZooStub()
+
 
 def my_service(conf, inputs, outputs):
     """Works in both development and production"""
@@ -234,46 +238,35 @@ from base_runner import BaseRunner
 
 zoo = ZooStub()
 
+
 def test_runner_locally():
     """Test a CWL workflow locally"""
-    
+
     conf = {
-        "lenv": {
-            "Identifier": "test-workflow",
-            "message": ""
-        },
-        "main": {
-            "tmpPath": "/tmp/zoo-test"
-        }
+        "lenv": {"Identifier": "test-workflow", "message": ""},
+        "main": {"tmpPath": "/tmp/zoo-test"},
     }
-    
+
     inputs = {
-        "input_file": {
-            "cache_file": "/path/to/test.tif",
-            "mimeType": "image/tiff"
-        },
-        "threshold": {
-            "dataType": "float",
-            "value": "0.5"
-        }
+        "input_file": {"cache_file": "/path/to/test.tif", "mimeType": "image/tiff"},
+        "threshold": {"dataType": "float", "value": "0.5"},
     }
-    
+
     outputs = {"stac": {}}
-    
+
     zoo.info("Starting local test")
-    
+
     runner = BaseRunner(
-        cwl_path="/path/to/app-package.cwl",
-        input_params=inputs,
-        conf=conf
+        cwl_path="/path/to/app-package.cwl", input_params=inputs, conf=conf
     )
-    
+
     zoo.info("Executing workflow")
     result = runner.execute()
-    
+
     zoo.success(f"Result: {result}")
-    
+
     return zoo.SERVICE_SUCCEEDED
+
 
 if __name__ == "__main__":
     status = test_runner_locally()
@@ -294,7 +287,7 @@ logger.add(
     "service.log",
     rotation="10 MB",
     level="DEBUG",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}"
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {message}",
 )
 
 zoo = ZooStub()
@@ -314,6 +307,7 @@ try:
     import zoo
 except ImportError:
     from zoostub import ZooStub
+
     zoo = ZooStub()
 ```
 
@@ -321,10 +315,10 @@ except ImportError:
 
 ```python
 # ✅ DO: Regular status updates
-zoo.update_status(conf, 0)    # Started
-zoo.update_status(conf, 25)   # 1/4 complete
-zoo.update_status(conf, 50)   # 1/2 complete
-zoo.update_status(conf, 75)   # 3/4 complete
+zoo.update_status(conf, 0)  # Started
+zoo.update_status(conf, 25)  # 1/4 complete
+zoo.update_status(conf, 50)  # 1/2 complete
+zoo.update_status(conf, 75)  # 3/4 complete
 zoo.update_status(conf, 100)  # Complete
 ```
 
@@ -332,11 +326,11 @@ zoo.update_status(conf, 100)  # Complete
 
 ```python
 # ✅ DO: Use appropriate log levels
-zoo.debug("Variable value: {value}")     # Development info
-zoo.info("Processing step completed")    # Normal operation
-zoo.warning("Using default value")       # Potential issue
-zoo.error("Failed to connect to API")    # Error occurred
-zoo.critical("System out of memory")     # Critical failure
+zoo.debug("Variable value: {value}")  # Development info
+zoo.info("Processing step completed")  # Normal operation
+zoo.warning("Using default value")  # Potential issue
+zoo.error("Failed to connect to API")  # Error occurred
+zoo.critical("System out of memory")  # Critical failure
 
 # ❌ DON'T: Use info for everything
 ```
@@ -365,53 +359,49 @@ from zoo_conf import ZooInputs, ZooOutputs
 
 zoo = ZooStub()
 
+
 def test_service_locally():
     """Complete local service test"""
-    
+
     # Setup test data
     conf = {
         "lenv": {"Identifier": "test", "message": ""},
-        "main": {"tmpPath": "/tmp/test"}
+        "main": {"tmpPath": "/tmp/test"},
     }
-    
+
     inputs = {
-        "threshold": {
-            "dataType": "float",
-            "value": "0.75"
-        },
-        "input_file": {
-            "cache_file": "/tmp/test.tif",
-            "mimeType": "image/tiff"
-        }
+        "threshold": {"dataType": "float", "value": "0.75"},
+        "input_file": {"cache_file": "/tmp/test.tif", "mimeType": "image/tiff"},
     }
-    
+
     outputs = {"result": {}}
-    
+
     # Run service
     zoo.info("=== Starting Service Test ===")
     zoo.update_status(conf, 0)
-    
+
     # Parse inputs
     zoo_inputs = ZooInputs(inputs)
     params = zoo_inputs.get_processing_parameters()
     zoo.debug(f"Parameters: {params}")
-    
+
     # Simulate processing
     zoo.info("Processing data...")
     zoo.update_status(conf, 50)
-    
+
     # Set results
     zoo_outputs = ZooOutputs(outputs)
     zoo_outputs.set_output("/tmp/result.json")
-    
+
     zoo.success("Service completed successfully")
     zoo.update_status(conf, 100)
-    
+
     return zoo.SERVICE_SUCCEEDED
+
 
 if __name__ == "__main__":
     status = test_service_locally()
-    
+
     if status == 3:
         print("✓ Test PASSED")
     else:
