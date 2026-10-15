@@ -7,7 +7,6 @@ on:
       - feature/**
       - develop
       - main
-      - feature/runner-common
     tags:
       - v*.*.*
 
