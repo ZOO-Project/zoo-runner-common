@@ -20,9 +20,9 @@ class ExecutionHandler(ABC):
 
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        self.job_id = getattr(self, 'job_id', None)
-        self.outputs = getattr(self, 'outputs', {})
-        self.results = getattr(self, 'results', None)
+        self.job_id = getattr(self, "job_id", None)
+        self.outputs = getattr(self, "outputs", {})
+        self.results = getattr(self, "results", None)
 
     def set_job_id(self, job_id):
         """Set the job ID for the execution."""

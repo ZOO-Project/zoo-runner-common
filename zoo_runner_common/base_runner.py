@@ -100,7 +100,7 @@ class BaseRunner(ABC):
             progress: Progress percentage (0-100)
             message: Status message to display
         """
-        if hasattr(self.conf, 'conf') and "lenv" in self.conf.conf:
+        if hasattr(self.conf, "conf") and "lenv" in self.conf.conf:
             self.conf.conf["lenv"]["message"] = message
             zoo.update_status(self.conf.conf, progress)
         else:
@@ -115,6 +115,7 @@ class BaseRunner(ABC):
         """
         if self.namespace_name is None:
             import uuid
+
             unique_id = str(uuid.uuid4())[:8]
             self.namespace_name = f"{self.get_workflow_id()}-{unique_id}".lower()
 
@@ -260,8 +261,16 @@ class BaseRunner(ABC):
 
         # Get max tmpdir and outdir in MB
         # Use Max if available, otherwise fall back to Min
-        tmpdir_max = max(resources["tmpdirMax"]) if resources["tmpdirMax"] else (max(resources["tmpdirMin"]) if resources["tmpdirMin"] else 0)
-        outdir_max = max(resources["outdirMax"]) if resources["outdirMax"] else (max(resources["outdirMin"]) if resources["outdirMin"] else 0)
+        tmpdir_max = (
+            max(resources["tmpdirMax"])
+            if resources["tmpdirMax"]
+            else (max(resources["tmpdirMin"]) if resources["tmpdirMin"] else 0)
+        )
+        outdir_max = (
+            max(resources["outdirMax"])
+            if resources["outdirMax"]
+            else (max(resources["outdirMin"]) if resources["outdirMin"] else 0)
+        )
 
         # Total in MB
         volume_size_mb = tmpdir_max + outdir_max
@@ -315,7 +324,9 @@ class BaseRunner(ABC):
         Returns:
             dict: Processing parameters suitable for CWL execution
         """
-        return self.inputs.get_processing_parameters(workflow=self.workflow.get_workflow())
+        return self.inputs.get_processing_parameters(
+            workflow=self.workflow.get_workflow()
+        )
 
     @abstractmethod
     def wrap(self):
